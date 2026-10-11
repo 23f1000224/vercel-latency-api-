@@ -12,7 +12,8 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["POST", "OPTIONS"],
+    allow_credentials=False,
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -27,7 +28,6 @@ def percentile95(values):
     position = (len(values) - 1) * 0.95
     lower = math.floor(position)
     upper = math.ceil(position)
-
     return values[lower] + (
         values[upper] - values[lower]
     ) * (position - lower)
@@ -54,9 +54,7 @@ async def analytics(request: Request):
             "avg_latency": sum(latencies) / len(latencies),
             "p95_latency": percentile95(latencies),
             "avg_uptime": sum(uptimes) / len(uptimes),
-            "breaches": sum(
-                latency > threshold for latency in latencies
-            ),
+            "breaches": sum(x > threshold for x in latencies),
         }
 
     return JSONResponse(content=result)
