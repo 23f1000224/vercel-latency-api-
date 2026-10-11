@@ -62,4 +62,4 @@ async def analytics(request: Request):
             "breaches": sum(x > threshold for x in latencies),
         }
 
-    return JSONResponse(content=result)
+    return JSONResponse(content={"regions": result})
