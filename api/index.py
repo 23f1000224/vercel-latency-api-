@@ -5,7 +5,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 app = FastAPI()
 
@@ -13,7 +13,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=False,
-    allow_methods=["*"],
+    allow_methods=["POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -25,12 +25,15 @@ with open(DATA_FILE, "r") as f:
 
 def percentile95(values):
     values = sorted(values)
-    position = (len(values) - 1) * 0.95
-    lower = math.floor(position)
-    upper = math.ceil(position)
-    return values[lower] + (
-        values[upper] - values[lower]
-    ) * (position - lower)
+    pos = (len(values) - 1) * 0.95
+    low = math.floor(pos)
+    high = math.ceil(pos)
+    return values[low] + (values[high] - values[low]) * (pos - low)
+
+
+@app.options("/")
+async def preflight():
+    return Response(status_code=204)
 
 
 @app.post("/")
@@ -43,7 +46,6 @@ async def analytics(request: Request):
 
     for region in regions:
         rows = [r for r in DATA if r["region"] == region]
-
         if not rows:
             continue
 
